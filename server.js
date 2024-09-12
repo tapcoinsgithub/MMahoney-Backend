@@ -24,6 +24,11 @@ async function LoginFunc(username, password) {
     result = await database.login(username, password)
     return result;
 }
+
+app.get('/user', authenticateToken, (req, res) => {
+    return res.send({result: "Valid"})
+})
+
 app.post('/register', async (req, res) => {
     const { username, password } = req.body;
     result = registerFunc(username, password);
@@ -43,12 +48,11 @@ app.post('/login', async (req, res) => {
         user = { username: username, password: password}
         accessToken = generatAccessToken(user)
         const refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET)
-        console.log(refreshToken);
         refreshTokens.push(refreshToken)
-        return res.send("Success");
+        return res.send({result: "Success", token: accessToken});
     }
     else{
-        return res.json("Failed");
+        return res.json({result: "Failed", token: ''});
     }
 })
 
@@ -63,12 +67,17 @@ app.post('/token', (req, res) => {
 })
 
 app.delete('/logout', (req, res) => {
-    refreshTokens = refreshTokens.filter(token => token !== req.body.token)
-    res.sendStatus(204)
+    try{
+        refreshTokens = refreshTokens.filter(token => token !== req.body.token)
+        res.sendStatus(204)
+    }
+    catch(error) {
+        res.sendStatus(401)
+    }
 })
 
 function generatAccessToken(user) {
-    return accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '2m' })
+    return accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1m' })
 }
 
 function authenticateToken(req, res, next) {
@@ -78,7 +87,9 @@ function authenticateToken(req, res, next) {
 
     jwt.verify(token,
         process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-            if (err) return res.sendStatus(403);
+            if (err){
+                return res.sendStatus(403);
+            }
             req.user = user
             next()
         }
