@@ -30,13 +30,16 @@ app.get('/user', authenticateToken, (req, res) => {
 })
 
 app.post('/register', async (req, res) => {
+    console.log("REGISTERING")
     const { username, password } = req.body;
     result = registerFunc(username, password);
     if (result){
-        return res.send("From the Backend. Success");
+        console.log("register is success")
+        return res.send({result: "Success"});
     }
     else{
-        return res.json("From the Backend. Failed");
+        console.log("register failed")
+        return res.json({result: "Failed"});
     }
     
 })

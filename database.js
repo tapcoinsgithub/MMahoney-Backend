@@ -1,6 +1,31 @@
 const mysql = require('mysql2');
 const dotenv = require('dotenv');
+const { Sequelize, DataTypes } = require('sequelize');
 dotenv.config();
+const sequelize = new Sequelize(process.env.MYSQL_DATABASE, process.env.MYSQL_USER, process.env.MYSQL_PASSWORD, {
+    host: process.env.MYSQL_HOST,
+    dialect: 'mysql'
+  });
+
+const User = sequelize.define('Users', {
+// Define attributes
+username: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true
+},
+password: {
+    type: DataTypes.STRING,
+    allowNull: false
+}
+}, {
+// Other model options
+});
+
+// Sync with the database
+sequelize.sync().then(() => {
+console.log('User table has been created.');
+});
 
 const pool = mysql.createPool({
     host: process.env.MYSQL_HOST,
